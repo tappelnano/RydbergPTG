@@ -36,7 +36,7 @@ def sigmax_anc (k,N): #N = number of ancilla qubits
                  sig = tensor(sig,identity(2))
              sig = tensor(sig,sigmax())
              for i in range (k,2*N) :
-                 sig = tensor(sig,identity(2))
+                 sig = tensor(sig,identity(2))  
         return sig #dimension output matric = 2^(2N) x 2^(2N)
     else :  
          print("k can't be greater than N") #error checker
@@ -292,8 +292,22 @@ def Pi (N, d,L): #projection onto supports (d-th order)
 
 def f(L, k): #f(lambda)
     a = 0
-    b = 0
-    c = 0
+    b = 0.995
+    c = 0.995
+    d = 0
+    return a*(L**k) + b*(L**(k-1)) + c*(L**(k-2)) + d
+
+def f2(L, k): #f(lambda)
+    a = 0
+    b = 1.05
+    c = 1
+    d = 0
+    return a*(L**k) + b*(L**(k-1)) + c*(L**(k-2)) + d
+
+def f3(L, k): #f(lambda)
+    a = 0
+    b = 1
+    c = 1
     d = 0
     return a*(L**k) + b*(L**(k-1)) + c*(L**(k-2)) + d
 
@@ -317,17 +331,25 @@ L1 = np.linspace(0.01, 0.15, 21)
 
 def rel_error_plot_XYZ (L, d): #L = list with perturbation strengths (-> lambda)
     norm_vals = []
+    norm_vals2 = []
+    norm_vals3 = []
     for l in L:
         diff = H_id(3, l, 3) - (H_eff(3, d,l) + f(l,3)*Pi(3, d, l))  #chose d=2*3=8 for the q ancilla qubit case
+        diff2 = H_id(3, l, 3) - (H_eff(3, d,l) + f2(l,3)*Pi(3, d, l))
+        diff3 = H_id(3, l, 3) - (H_eff(3, d,l) + f3(l,3)*Pi(3, d, l))
         norm_vals.append(   op_norm(diff) / op_norm(H_id(3,l,3))  )
-    plt.plot(L, norm_vals, label = "f = -1/2 \u03BB$^2$")
+        norm_vals2.append(   op_norm(diff2) / op_norm(H_id(3,l,3))  )
+        norm_vals3.append(   op_norm(diff3) / op_norm(H_id(3,l,3))  )
+    plt.plot(L, norm_vals, label = "f  = 0.995 \u03BB$^2$ + 0.995 \u03BB")
+    plt.plot(L, norm_vals2, label = "f = 1.05 \u03BB$^2$ + \u03BB")
+    plt.plot(L, norm_vals3, label = "f = \u03BB$^2$ + \u03BB")
     ax = plt.subplot(111)
     ax.spines['right'].set_color((.8,.8,.8))
     ax.spines['top'].set_color((.8,.8,.8))
-    plt.title("XXY Perturbation: 2-norm error", fontsize=16)
+    plt.title("XYZ Perturbation: 2-norm error", fontsize=16)
     plt.xlabel('Perturbation strength \u03BB', fontsize=14)
-    plt.ylabel("$||H_{id} - H_{eff}||_2$", fontsize=14)
+    plt.ylabel("$\\frac{||H_{id} - H_{eff}||_2}{||H_{id}||}$", fontsize=14)
     ax.grid(ls = "-.", c = "lightgrey")
     ax.legend()
     
-rel_error_plot_XYZ (L1, 2**6) #chose d=2*3=8 for the q ancilla qubit case
+rel_error_plot_XYZ (L1, 2**3) #chose d=2*3=8 for the q ancilla qubit case
